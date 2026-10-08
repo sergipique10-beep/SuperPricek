@@ -65,7 +65,10 @@ En la consola de Windows, usar `PYTHONIOENCODING=utf-8` para ver bien las tildes
 ## Infraestructura
 
 - Supabase: proyecto `superpricek` (ref `gikayuegystreypnztsp`), región
-  eu-central-1 (Fráncfort), Postgres 17, plan gratuito (500 MB). Todavía sin tablas.
+  eu-central-1 (Fráncfort), Postgres 17, plan gratuito (500 MB). Migraciones
+  de `supabase/migrations/` aplicadas (la del índice de FK, desde el SQL Editor:
+  no figura en el historial de Supabase; con la CLI haría falta `migration repair`).
+  Primera importación 2026-10-08: 5 almacenes, ~4300 productos cada uno, 23 MB.
 - Hosting de la API: Render (plan gratuito; se duerme tras 15 min sin tráfico).
 - Diseño (2026-10-08): `docs/superpowers/specs/2026-10-08-supabase-multi-provincia-design.md`.
   Provincias → zonas de precio (almacén) → histórico por periodos
