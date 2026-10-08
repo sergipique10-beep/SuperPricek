@@ -1,0 +1,9 @@
+# Postgres local para los tests (misma versión que Supabase).
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: comparador_test
+    ports:
+      - "54329:5432"

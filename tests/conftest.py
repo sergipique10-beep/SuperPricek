@@ -1,9 +1,14 @@
 import json
+import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
+import psycopg
 import pytest
+from dotenv import dotenv_values
 
+from comparador.db import connect
 from comparador.providers.mercadona import BASE_URL, MercadonaProvider
 from comparador.storage import Storage
 
@@ -43,3 +48,44 @@ def storage() -> Storage:
     s = Storage(":memory:")
     yield s
     s.close()
+
+
+# ---------- Postgres de tests ----------
+
+ROOT = Path(__file__).parent.parent
+MIGRATIONS = ROOT / "supabase" / "migrations"
+TABLES = ("supermarkets, provinces, price_zones, province_zones, "
+          "products, price_periods, import_runs")
+
+
+def assert_local(url: str) -> None:
+    """Los tests borran el esquema: jamás contra Supabase."""
+    if urlsplit(url).hostname not in ("localhost", "127.0.0.1"):
+        raise RuntimeError("TEST_DATABASE_URL debe apuntar a localhost (Docker), nunca a Supabase")
+
+
+@pytest.fixture(scope="session")
+def db_url() -> str:
+    # Solo se lee TEST_DATABASE_URL del .env: DATABASE_URL (Supabase) no entra en los tests
+    url = os.environ.get("TEST_DATABASE_URL") or dotenv_values(ROOT / ".env").get("TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Sin TEST_DATABASE_URL: arranca Postgres con `docker compose up -d`")
+    assert_local(url)
+    try:
+        with psycopg.connect(url, autocommit=True) as conn:
+            conn.execute("drop schema if exists public cascade")
+            conn.execute("create schema public")
+            for migration in sorted(MIGRATIONS.glob("*.sql")):
+                conn.execute(migration.read_text(encoding="utf-8"))
+    except psycopg.OperationalError as exc:
+        pytest.skip(f"Postgres de tests no disponible ({exc}). ¿`docker compose up -d`?")
+    return url
+
+
+@pytest.fixture
+def db(db_url):
+    conn = connect(db_url)
+    conn.execute(f"truncate {TABLES} restart identity cascade")
+    conn.commit()
+    yield conn
+    conn.close()
