@@ -131,3 +131,30 @@ def make_item(external_id, price, unit_price=None, unit="l", name=None):
                                unit_price=price if unit_price is None else unit_price,
                                unit=unit),
     )
+
+
+@pytest.fixture
+def seeded(db):
+    """Barcelona (bcn1) con dos días, Madrid (mad3) con uno, Málaga sin servicio."""
+    from comparador.catalog import add_province
+    from comparador.importer import run_import
+
+    leche = "Leche semidesnatada Hacendado"
+    prov = FakeProvider(zones={"08001": "bcn1", "28001": "mad3"}, catalogs={
+        "bcn1": [make_item("1", 0.83, name=leche),
+                 make_item("2", 4.98, unit_price=0.83, name=f"{leche} pack-6"),
+                 make_item("3", 3.25, unit_price=0.20, unit="ud", name="Café con leche en cápsula"),
+                 make_item("4", 0.96, name="Leche entera Hacendado"),
+                 make_item("5", 1.50, unit_price=0.60, unit="100ml", name="Leche facial limpiadora"),
+                 make_item("6", 2.00, unit="kg", name="Harina 50% integral")],
+        "mad3": [make_item("1", 0.89, name=leche)],
+    })
+    for pid, name, pc in [("barcelona", "Barcelona", "08001"), ("madrid", "Madrid", "28001"),
+                          ("malaga", "Málaga", "29001")]:
+        add_province(db, [prov], pid, name, pc)
+    run_import(db, prov, import_date=D1)
+    # Día 2 en Barcelona: la leche entera (4) deja de venderse y la semi (1) sube
+    prov.catalogs["bcn1"] = [make_item("1", 0.85, name=leche)] + [
+        i for i in prov.catalogs["bcn1"] if i.product.external_id not in ("1", "4")]
+    run_import(db, prov, zone_code="bcn1", import_date=D2)
+    return prov
