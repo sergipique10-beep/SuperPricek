@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -9,6 +10,8 @@ import pytest
 from dotenv import dotenv_values
 
 from comparador.db import connect
+from comparador.models import PriceObservation, Product, ScrapedItem
+from comparador.providers.base import Provider, ZoneNotServed
 from comparador.providers.mercadona import BASE_URL, MercadonaProvider
 from comparador.storage import Storage
 
@@ -89,3 +92,42 @@ def db(db_url):
     conn.commit()
     yield conn
     conn.close()
+
+
+# ---------- providers y productos de prueba ----------
+
+D1 = date(2026, 10, 8)
+D2 = D1 + timedelta(days=1)
+
+
+class FakeProvider(Provider):
+    """Provider en memoria: zona por código postal y catálogo por zona."""
+
+    name = "mercadona"
+    display_name = "Mercadona"
+
+    def __init__(self, zones=None, catalogs=None, failing=()):
+        self.zones = zones or {}
+        self.catalogs = catalogs or {}
+        self.failing = set(failing)
+
+    def zone_for_postal_code(self, postal_code):
+        if postal_code not in self.zones:
+            raise ZoneNotServed(f"Sin servicio en {postal_code}")
+        return self.zones[postal_code]
+
+    def fetch_all(self, zone, limit_categories=None):
+        if zone in self.failing:
+            raise RuntimeError(f"Fallo simulado en {zone}")
+        yield from self.catalogs.get(zone, [])
+
+
+def make_item(external_id, price, unit_price=None, unit="l", name=None):
+    return ScrapedItem(
+        product=Product(supermarket="mercadona", external_id=external_id,
+                        name=name or f"Producto {external_id}"),
+        price=PriceObservation(supermarket="mercadona", external_id=external_id,
+                               price=price,
+                               unit_price=price if unit_price is None else unit_price,
+                               unit=unit),
+    )
