@@ -1,7 +1,7 @@
 import pytest
 from conftest import assert_local
 
-from comparador.db import today
+from comparador.db import database_url, today
 
 TABLES = ["import_runs", "price_periods", "price_zones", "products",
           "province_zones", "provinces", "supermarkets"]
@@ -26,3 +26,9 @@ def test_today_devuelve_fecha():
 def test_tests_se_niegan_a_usar_bases_remotas(url):
     with pytest.raises(RuntimeError):
         assert_local(url)
+
+
+def test_database_url_ignora_espacios_y_saltos_de_linea(monkeypatch):
+    # Al pegar la URL en Render o en un secret de GitHub se cuela un Enter
+    monkeypatch.setenv("DATABASE_URL", "  postgresql://u:p@host:6543/postgres\n")
+    assert database_url() == "postgresql://u:p@host:6543/postgres"

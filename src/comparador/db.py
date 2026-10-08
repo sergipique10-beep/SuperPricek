@@ -15,9 +15,12 @@ MADRID = ZoneInfo("Europe/Madrid")
 
 
 def database_url() -> str:
-    """DATABASE_URL del entorno o, en local, del archivo .env."""
+    """DATABASE_URL del entorno o, en local, del archivo .env.
+
+    Se quitan espacios y saltos de línea: al pegar la URL en el panel de
+    Render o en un secret de GitHub es fácil que se cuele un Enter al final."""
     load_dotenv(Path.cwd() / ".env")
-    url = os.environ.get("DATABASE_URL")
+    url = os.environ.get("DATABASE_URL", "").strip()
     if not url:
         raise RuntimeError("Falta DATABASE_URL: ponla en .env o en el entorno")
     return url
