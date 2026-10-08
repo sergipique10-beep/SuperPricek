@@ -13,12 +13,18 @@ Arquitectura y uso: ver README.md.
 
 ```bash
 .venv/Scripts/python -m pip install -e ".[dev]"     # Windows; en Linux .venv/bin/...
+docker compose up -d                                # Postgres 17 de tests (puerto 54329)
 .venv/Scripts/python -m pytest -q
-comparador import mercadona --limit-categories 2 --dry-run   # prueba rápida, 3 peticiones
-comparador import mercadona --postal-code 08820              # completa, ~3 min
-comparador search "leche"
-comparador serve                                             # http://localhost:8000/docs
+comparador province add barcelona "Barcelona" --postal-code 08001
+comparador province list
+comparador import mercadona --zone bcn1 --limit-categories 2 --dry-run  # sin BD, 3 peticiones
+comparador import mercadona                          # todas las zonas activas, ~3 min/zona
+comparador search "leche" --province barcelona
+comparador serve                                     # http://localhost:8000/docs
 ```
+
+`.env` (no versionado) tiene `DATABASE_URL` (Supabase, session pooler) y
+`TEST_DATABASE_URL` (Docker). Los tests solo aceptan una base de datos en localhost.
 
 En la consola de Windows, usar `PYTHONIOENCODING=utf-8` para ver bien las tildes.
 
@@ -68,8 +74,5 @@ En la consola de Windows, usar `PYTHONIOENCODING=utf-8` para ver bien las tildes
 
 ## Pendiente conocido
 
-- `search` ordena por `unit_price` mezclando unidades (€/ud de cápsulas antes
-  que €/l de leche).
-- El workflow diario usa `--warehouse vlc1`; el usuario vive en El Prat (bcn1).
-- El histórico en GitHub Actions vive en la caché: si caduca, se pierde.
-  Plan: migrar a Supabase/Postgres.
+- Marca y EAN: solo en `/api/products/{id}/` (una petición por producto).
+- Vigilar que el proyecto de Supabase (plan gratuito) no se pause por inactividad.

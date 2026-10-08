@@ -1,8 +1,8 @@
 # Comparador de precios de supermercados
 
 Recopila, normaliza y guarda el histórico de precios de supermercados en España
-para poder compararlos. Empieza con **Mercadona**; la arquitectura está pensada
-para añadir DIA, Lidl y otras cadenas sin tocar el resto del código.
+para poder compararlos por provincia. Empieza con **Mercadona**; la arquitectura
+está pensada para añadir DIA, Lidl y otras cadenas sin tocar el resto del código.
 
 ## Arquitectura
 
@@ -19,10 +19,11 @@ para añadir DIA, Lidl y otras cadenas sin tocar el resto del código.
   Importador                     src/comparador/importer.py
           │
           ▼
-  Base de datos + histórico      src/comparador/storage.py, schema.sql
+  Postgres (Supabase)            supabase/migrations/
+  provincias → zonas → periodos de precio
           │
           ▼
-  API pública (solo lectura)     src/comparador/api.py
+  Consultas + API (solo lectura) src/comparador/queries.py, api.py
           │
           ▼
   Frontend / otros consumidores  (siguiente fase)
@@ -34,50 +35,66 @@ Decisiones clave:
   estable y no castiga la web del supermercado con cada visita.
 - **Un provider por cadena.** Todo lo que sabemos del formato de Mercadona
   vive en `providers/mercadona.py`. Si su API cambia, solo se toca ese archivo.
-- **Histórico de precios.** Cada día se guarda una observación por producto
-  (`price_observations`); reimportar el mismo día no duplica filas.
-- **Región.** Mercadona cambia catálogo y precios según el almacén (`wh`),
-  que depende del código postal (`--postal-code` lo consulta a Mercadona,
-  p. ej. 08820 → `bcn1`). Se guarda con cada precio.
-- **SQLite para empezar**, con un esquema fácil de migrar a PostgreSQL/Supabase.
+- **Histórico por periodos.** Cada fila de `price_periods` es un tramo con el
+  mismo precio (`valid_from` → `last_seen`). Si el precio no cambia, solo se
+  alarga el tramo: el histórico ocupa ~1 MB al año por zona.
+- **Provincias y zonas.** Mercadona fija precios por almacén. Cada provincia
+  usa el almacén de su capital (`comparador province add`); varias provincias
+  pueden compartir almacén y se descarga una sola vez.
+- **Una transacción por zona.** Si la importación de una zona falla, se
+  deshace entera y las demás siguen; la API muestra el último día correcto.
+- **Postgres en Supabase**; los tests usan un Postgres 17 en Docker.
 
 ## Puesta en marcha
 
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
+cp .env.example .env        # y rellena DATABASE_URL (Supabase → Connect → Session pooler)
 
-# Prueba rápida: 2 categorías, sin guardar nada
-comparador import mercadona --limit-categories 2 --dry-run
+comparador province add barcelona "Barcelona" --postal-code 08001
+comparador province list
 
-# Importación completa (~3 min, ~4300 productos: hay 1 s de espera entre peticiones)
-comparador import mercadona --postal-code 08820   # o --warehouse bcn1
+# Prueba rápida sin base de datos: 2 categorías
+comparador import mercadona --zone bcn1 --limit-categories 2 --dry-run
 
-# Buscar en lo guardado
-comparador search "leche entera"
+# Importación de todas las zonas activas (~3 min por zona)
+comparador import mercadona
 
-# Arrancar la API → http://localhost:8000/docs
-comparador serve
+comparador search "leche" --province barcelona
+comparador serve            # → http://localhost:8000/docs
 ```
 
 ### Endpoints
 
+`province` es obligatorio en los endpoints de productos (404 si no existe).
+
 | Método | Ruta | Qué hace |
 |---|---|---|
 | GET | `/health` | Estado del servicio |
-| GET | `/api/v1/supermarkets` | Cadenas, nº de productos y última importación |
-| GET | `/api/v1/products/search?q=leche` | Búsqueda, ordenada por precio por unidad |
-| GET | `/api/v1/products/{id}` | Detalle con el último precio |
-| GET | `/api/v1/products/{id}/history` | Histórico de precios |
+| GET | `/api/v1/provinces` | Provincias, su zona por cadena y última importación |
+| GET | `/api/v1/supermarkets` | Cadenas y nº de productos |
+| GET | `/api/v1/products/search?q=leche&province=barcelona` | Productos a la venta hoy; `sort=unit_price` (por defecto) o `price` |
+| GET | `/api/v1/products/{id}?province=barcelona` | Detalle con el precio actual |
+| GET | `/api/v1/products/{id}/history?province=barcelona` | Histórico como periodos de precio |
 
 ## Tests
 
 ```bash
+docker compose up -d        # Postgres 17 local en el puerto 54329
 pytest
 ```
 
-Los tests usan una muestra real recortada de la API de Mercadona guardada en
-`tests/fixtures/`, así que no hacen peticiones reales.
+Los tests usan una muestra real recortada de la API de Mercadona
+(`tests/fixtures/`) y un Postgres local: no hacen peticiones a Mercadona ni
+tocan Supabase. Sin Docker, los tests de base de datos se saltan.
+
+## Despliegue
+
+- **Importación diaria:** `.github/workflows/import-diario.yml`, con el secret
+  `DATABASE_URL` (Session pooler de Supabase).
+- **API:** Render, desde `render.yaml` (New → Blueprint). `DATABASE_URL` con
+  el Transaction pooler de Supabase (puerto 6543).
 
 ## Uso responsable
 
@@ -89,6 +106,7 @@ vez al día. Es un proyecto personal sin ánimo de lucro.
 ## Roadmap
 
 - [x] Fase 1 — Arquitectura + provider de Mercadona + API básica
+- [x] Fase 1b — Supabase, histórico por periodos y 6 provincias
 - [ ] Fase 2 — Segundo supermercado (DIA o Lidl)
 - [ ] Fase 3 — Emparejar el mismo producto entre cadenas
 - [ ] Fase 4 — Optimizador de lista de la compra

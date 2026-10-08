@@ -1,0 +1,16 @@
+# Render: New → Blueprint → este repositorio. DATABASE_URL se rellena en el
+# panel con la cadena del Transaction pooler de Supabase (puerto 6543).
+services:
+  - type: web
+    name: superpricek-api
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install .
+    startCommand: uvicorn comparador.api:create_app --factory --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.12.7"
