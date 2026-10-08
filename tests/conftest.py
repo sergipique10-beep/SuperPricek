@@ -13,7 +13,6 @@ from comparador.db import connect
 from comparador.models import PriceObservation, Product, ScrapedItem
 from comparador.providers.base import Provider, ZoneNotServed
 from comparador.providers.mercadona import BASE_URL, MercadonaProvider
-from comparador.storage import Storage
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -44,13 +43,6 @@ def make_fake_mercadona(category_72: dict | None = None) -> MercadonaProvider:
 @pytest.fixture
 def fake_mercadona() -> MercadonaProvider:
     return make_fake_mercadona()
-
-
-@pytest.fixture
-def storage() -> Storage:
-    s = Storage(":memory:")
-    yield s
-    s.close()
 
 
 # ---------- Postgres de tests ----------
