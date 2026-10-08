@@ -40,7 +40,7 @@ Criterios de éxito:
 5 almacenes → 5 × 154 peticiones y ~15 min al día. Málaga no tiene tienda
 online (404) y queda fuera.
 
-## 1. Esquema (`supabase/migrations/0001_init.sql`)
+## 1. Esquema (`supabase/migrations/20261008120000_init.sql`)
 
 ```sql
 create schema if not exists extensions;
@@ -193,7 +193,9 @@ comparador search "leche" --province barcelona [--sort unit_price|price]
 comparador serve
 ```
 
-`--dry-run` no necesita base de datos y requiere `--zone`.
+`--dry-run` no necesita base de datos y requiere `--zone`. `--limit-categories`
+solo se admite con `--dry-run` (una importación parcial marcaría el resto del
+catálogo como no disponible).
 
 ## 4. API
 
