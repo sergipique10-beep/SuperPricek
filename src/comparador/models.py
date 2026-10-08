@@ -36,7 +36,7 @@ class PriceObservation:
     unit: str | None = None            # unidad de unit_price
     previous_price: float | None = None  # precio antes de una bajada
     on_promotion: bool = False
-    region: str | None = None          # almacén o código postal
+    zone: str | None = None            # zona de precio (almacén en Mercadona)
     observed_at: datetime = field(
         default_factory=lambda: datetime.now(timezone.utc)
     )

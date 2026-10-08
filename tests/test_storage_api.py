@@ -8,7 +8,7 @@ from comparador.importer import run_import
 
 
 def test_importar_y_buscar(fake_mercadona, storage):
-    result = run_import(fake_mercadona, storage)
+    result = run_import(fake_mercadona, storage, "vlc1")
     assert result.products == 4
 
     assert len(storage.search("leche")) == 4
@@ -21,15 +21,15 @@ def test_importar_y_buscar(fake_mercadona, storage):
 
 
 def test_reimportar_el_mismo_dia_no_duplica_historico(fake_mercadona, storage):
-    run_import(fake_mercadona, storage)
-    run_import(fake_mercadona, storage)
+    run_import(fake_mercadona, storage, "vlc1")
+    run_import(fake_mercadona, storage, "vlc1")
     pid = storage.search("semidesnatada")[0]["id"]
     assert len(storage.price_history(pid)) == 1
 
 
 def test_historico_de_varios_dias(fake_mercadona, storage):
     storage.ensure_supermarket("mercadona", "Mercadona")
-    item = next(fake_mercadona.fetch_all())
+    item = next(fake_mercadona.fetch_all("vlc1"))
     hoy = datetime.now(timezone.utc)
     for dias, precio in [(2, 5.10), (1, 5.04), (0, 4.98)]:
         obs = replace(item.price, price=precio, observed_at=hoy - timedelta(days=dias))
@@ -42,14 +42,14 @@ def test_historico_de_varios_dias(fake_mercadona, storage):
 
 
 def test_dry_run_no_escribe(fake_mercadona, storage, capsys):
-    result = run_import(fake_mercadona, None, dry_run=True)
+    result = run_import(fake_mercadona, None, "vlc1", dry_run=True)
     assert result.products == 4
     assert "Leche entera Asturiana" in capsys.readouterr().out
     assert storage.search("leche") == []
 
 
 def test_api(fake_mercadona, storage):
-    run_import(fake_mercadona, storage)
+    run_import(fake_mercadona, storage, "vlc1")
     client = TestClient(create_app(storage))
 
     assert client.get("/health").json() == {"status": "ok"}

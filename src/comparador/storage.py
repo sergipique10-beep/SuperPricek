@@ -71,7 +71,7 @@ class Storage:
                 on_promotion = excluded.on_promotion, observed_at = excluded.observed_at
             """,
             (product_id, obs.price, obs.unit_price, obs.unit, obs.previous_price,
-             int(obs.on_promotion), obs.region or "",
+             int(obs.on_promotion), obs.zone or "",
              obs.observed_at.isoformat(timespec="seconds"),
              obs.observed_at.date().isoformat()),
         )

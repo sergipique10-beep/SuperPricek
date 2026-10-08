@@ -51,10 +51,11 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     if args.command == "import":
-        provider = get_provider(args.supermarket, warehouse=args.warehouse,
-                                postal_code=args.postal_code, delay=args.delay)
+        provider = get_provider(args.supermarket, delay=args.delay)
+        zone = (provider.zone_for_postal_code(args.postal_code)
+                if args.postal_code else args.warehouse)
         storage = None if args.dry_run else Storage(args.db)
-        result = run_import(provider, storage, args.limit_categories, args.dry_run)
+        result = run_import(provider, storage, zone, args.limit_categories, args.dry_run)
         print(f"\n{result.products} productos {'vistos' if result.dry_run else 'guardados'}.")
 
     elif args.command == "search":

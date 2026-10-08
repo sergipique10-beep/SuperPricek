@@ -22,7 +22,7 @@ from typing import Any
 import httpx
 
 from ..models import PriceObservation, Product, ScrapedItem
-from .base import Provider
+from .base import Provider, ZoneNotServed
 
 log = logging.getLogger(__name__)
 
@@ -37,32 +37,26 @@ class MercadonaProvider(Provider):
     name = "mercadona"
     display_name = "Mercadona"
 
-    def __init__(
-        self,
-        warehouse: str = "vlc1",
-        delay: float = 1.0,
-        client: httpx.Client | None = None,
-        postal_code: str | None = None,
-    ):
+    def __init__(self, delay: float = 1.0, client: httpx.Client | None = None):
         self.delay = delay  # segundos entre peticiones, para no sobrecargar
         self.client = client or httpx.Client(
             base_url=BASE_URL,
             headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
             timeout=20,
         )
-        # Con código postal, se pregunta a Mercadona qué almacén le corresponde
-        self.warehouse = self.warehouse_for(postal_code) if postal_code else warehouse
 
-    def warehouse_for(self, postal_code: str) -> str:
+    def zone_for_postal_code(self, postal_code: str) -> str:
         """Almacén que Mercadona asigna a un código postal (p. ej. 08820 -> bcn1).
 
         Es lo mismo que hace la web al escribir el código postal: el almacén
-        llega en la cabecera `x-customer-wh` de la respuesta."""
+        llega en la cabecera `x-customer-wh`. Fuera de zona responde 404."""
         if not (len(postal_code) == 5 and postal_code.isdigit()):
             raise ValueError(f"Código postal no válido: {postal_code!r}")
         resp = self.client.put(
             "/postal-codes/actions/change-pc/", json={"new_postal_code": postal_code}
         )
+        if resp.status_code == 404:
+            raise ZoneNotServed(f"Mercadona no tiene tienda online en {postal_code}")
         resp.raise_for_status()
         warehouse = resp.headers.get("x-customer-wh")
         if not warehouse:
@@ -72,8 +66,8 @@ class MercadonaProvider(Provider):
 
     # ---------- HTTP ----------
 
-    def _get(self, path: str, retries: int = 3) -> dict[str, Any]:
-        params = {"lang": "es", "wh": self.warehouse}
+    def _get(self, path: str, zone: str, retries: int = 3) -> dict[str, Any]:
+        params = {"lang": "es", "wh": zone}
         for attempt in range(1, retries + 1):
             try:
                 resp = self.client.get(path, params=params)
@@ -97,29 +91,29 @@ class MercadonaProvider(Provider):
 
     # ---------- recorrido del catálogo ----------
 
-    def list_categories(self) -> list[dict[str, Any]]:
+    def list_categories(self, zone: str) -> list[dict[str, Any]]:
         """Devuelve las categorías de nivel 2, que son las que tienen productos."""
-        data = self._get("/categories/")
+        data = self._get("/categories/", zone)
         result = []
         for top in data.get("results", []):
             for sub in top.get("categories", []):
                 result.append({"id": sub["id"], "path": f"{top['name']} > {sub['name']}"})
         return result
 
-    def fetch_all(self, limit_categories: int | None = None) -> Iterator[ScrapedItem]:
-        categories = self.list_categories()
+    def fetch_all(self, zone: str, limit_categories: int | None = None) -> Iterator[ScrapedItem]:
+        categories = self.list_categories(zone)
         if limit_categories:
             categories = categories[:limit_categories]
-        log.info("Mercadona: %d categorías (almacén %s)", len(categories), self.warehouse)
+        log.info("Mercadona: %d categorías (almacén %s)", len(categories), zone)
 
         seen: set[str] = set()  # un producto puede aparecer en varias categorías
         for cat in categories:
             self._pause()
-            data = self._get(f"/categories/{cat['id']}/")
+            data = self._get(f"/categories/{cat['id']}/", zone)
             for leaf in data.get("categories", []):
                 path = f"{cat['path']} > {leaf['name']}"
                 for raw in leaf.get("products", []):
-                    item = parse_product(raw, category=path, region=self.warehouse)
+                    item = parse_product(raw, category=path, zone=zone)
                     if item and item.product.external_id not in seen:
                         seen.add(item.product.external_id)
                         yield item
@@ -140,7 +134,7 @@ def _num(value: Any) -> float | None:
 
 
 def parse_product(raw: dict[str, Any], category: str | None = None,
-                  region: str | None = None) -> ScrapedItem | None:
+                  zone: str | None = None) -> ScrapedItem | None:
     """Convierte un producto del JSON de Mercadona al modelo común.
 
     Formato verificado con la API real (octubre 2026):
@@ -186,6 +180,6 @@ def parse_product(raw: dict[str, Any], category: str | None = None,
         unit=UNIT_MAP.get(unit_raw, unit_raw or None),
         previous_price=previous if previous and previous > price else None,
         on_promotion=bool(previous and previous > price),
-        region=region,
+        zone=zone,
     )
     return ScrapedItem(product=product, price=observation)

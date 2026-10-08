@@ -18,7 +18,7 @@ class ImportResult:
     dry_run: bool
 
 
-def run_import(provider: Provider, storage: Storage | None,
+def run_import(provider: Provider, storage: Storage | None, zone: str,
                limit_categories: int | None = None,
                dry_run: bool = False) -> ImportResult:
     """Descarga el catálogo y lo guarda. Con dry_run solo cuenta y muestra."""
@@ -30,7 +30,7 @@ def run_import(provider: Provider, storage: Storage | None,
         run_id = storage.start_run(provider.name)
 
     try:
-        for item in provider.fetch_all(limit_categories=limit_categories):
+        for item in provider.fetch_all(zone, limit_categories=limit_categories):
             count += 1
             if dry_run:
                 p, o = item.product, item.price

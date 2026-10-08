@@ -30,7 +30,7 @@ def make_fake_mercadona(category_72: dict | None = None) -> MercadonaProvider:
         return httpx.Response(200, json=data) if data else httpx.Response(404)
 
     client = httpx.Client(base_url=BASE_URL, transport=httpx.MockTransport(handler))
-    return MercadonaProvider(warehouse="vlc1", delay=0, client=client)
+    return MercadonaProvider(delay=0, client=client)
 
 
 @pytest.fixture
