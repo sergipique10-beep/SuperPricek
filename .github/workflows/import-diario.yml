@@ -1,0 +1,38 @@
+# Descarga los precios una vez al día y guarda la base de datos como
+# artefacto descargable. Cuando pases a Supabase/Postgres, este job
+# escribirá directamente en la base de datos remota.
+name: Importación diaria
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # 05:17 UTC, a una hora de poco tráfico
+  workflow_dispatch:
+
+jobs:
+  mercadona:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+
+      # Recupera la base de datos del día anterior para mantener el histórico
+      - uses: actions/cache/restore@v4
+        with:
+          path: data/precios.db
+          key: precios-db-${{ github.run_id }}
+          restore-keys: precios-db-
+
+      - run: comparador import mercadona --warehouse vlc1
+
+      - uses: actions/cache/save@v4
+        with:
+          path: data/precios.db
+          key: precios-db-${{ github.run_id }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: precios-db
+          path: data/precios.db

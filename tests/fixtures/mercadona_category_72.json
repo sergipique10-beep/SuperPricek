@@ -1,0 +1,242 @@
+{
+  "id": 72,
+  "name": "Leche y bebidas vegetales",
+  "order": 373,
+  "layout": 1,
+  "published": true,
+  "is_extended": false,
+  "categories": [
+    {
+      "id": 343,
+      "name": "Leche semidesnatada",
+      "order": 373,
+      "layout": 2,
+      "published": true,
+      "is_extended": false,
+      "image": null,
+      "subtitle": null,
+      "products": [
+        {
+          "id": "10381",
+          "slug": "leche-semidesnatada-hacendado-pack-6",
+          "limit": 999,
+          "badges": {
+            "is_water": false,
+            "requires_age_check": false
+          },
+          "status": null,
+          "packaging": null,
+          "published": true,
+          "share_url": "https://tienda.mercadona.es/product/10381/leche-semidesnatada-hacendado-pack-6",
+          "thumbnail": "https://prod-mercadona.imgix.net/images/c15010ddd0e6fc881e5ef94446d43bef.jpg?fit=crop&h=300&w=300",
+          "categories": [
+            {
+              "id": 6,
+              "name": "Huevos, leche y mantequilla",
+              "level": 0,
+              "order": 373
+            }
+          ],
+          "display_name": "Leche semidesnatada Hacendado",
+          "main_feature": "",
+          "unavailable_from": null,
+          "price_instructions": {
+            "iva": null,
+            "is_new": false,
+            "is_pack": true,
+            "pack_size": 1.0,
+            "unit_name": "briks",
+            "unit_size": 6.0,
+            "bulk_price": "0.83",
+            "unit_price": "4.98",
+            "approx_size": false,
+            "size_format": "l",
+            "total_units": 6,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "tax_percentage": "4.000",
+            "price_decreased": false,
+            "reference_price": "0.830",
+            "min_bunch_amount": 1.0,
+            "reference_format": "L",
+            "previous_unit_price": "        5.04",
+            "increment_bunch_amount": 1.0
+          },
+          "unavailable_weekdays": [],
+          "is_new_arrival": false
+        },
+        {
+          "id": "10382",
+          "slug": "leche-semidesnatada-hacendado-brick",
+          "limit": 999,
+          "badges": {
+            "is_water": false,
+            "requires_age_check": false
+          },
+          "status": null,
+          "packaging": "Brik",
+          "published": true,
+          "share_url": "https://tienda.mercadona.es/product/10382/leche-semidesnatada-hacendado-brick",
+          "thumbnail": "https://prod-mercadona.imgix.net/images/5a14472b53ac7a848fc8220982694c4a.jpg?fit=crop&h=300&w=300",
+          "categories": [
+            {
+              "id": 6,
+              "name": "Huevos, leche y mantequilla",
+              "level": 0,
+              "order": 373
+            }
+          ],
+          "display_name": "Leche semidesnatada Hacendado",
+          "main_feature": null,
+          "unavailable_from": null,
+          "price_instructions": {
+            "iva": null,
+            "is_new": false,
+            "is_pack": false,
+            "pack_size": null,
+            "unit_name": null,
+            "unit_size": 1.0,
+            "bulk_price": "0.83",
+            "unit_price": "0.83",
+            "approx_size": false,
+            "size_format": "l",
+            "total_units": null,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "tax_percentage": "4.000",
+            "price_decreased": false,
+            "reference_price": "0.830",
+            "min_bunch_amount": 1.0,
+            "reference_format": "L",
+            "previous_unit_price": null,
+            "increment_bunch_amount": 1.0
+          },
+          "unavailable_weekdays": [],
+          "is_new_arrival": false
+        }
+      ]
+    },
+    {
+      "id": 342,
+      "name": "Leche entera",
+      "order": 373,
+      "layout": 2,
+      "published": true,
+      "is_extended": false,
+      "image": null,
+      "subtitle": null,
+      "products": [
+        {
+          "id": "10380",
+          "slug": "leche-entera-hacendado-brick",
+          "limit": 999,
+          "badges": {
+            "is_water": false,
+            "requires_age_check": false
+          },
+          "status": null,
+          "packaging": "Brik",
+          "published": true,
+          "share_url": "https://tienda.mercadona.es/product/10380/leche-entera-hacendado-brick",
+          "thumbnail": "https://prod-mercadona.imgix.net/images/0230a339ba4f6f64af767ea94081ce28.jpg?fit=crop&h=300&w=300",
+          "categories": [
+            {
+              "id": 6,
+              "name": "Huevos, leche y mantequilla",
+              "level": 0,
+              "order": 373
+            }
+          ],
+          "display_name": "Leche entera Hacendado",
+          "main_feature": null,
+          "unavailable_from": null,
+          "price_instructions": {
+            "iva": null,
+            "is_new": false,
+            "is_pack": false,
+            "pack_size": null,
+            "unit_name": null,
+            "unit_size": 1.0,
+            "bulk_price": "0.96",
+            "unit_price": "0.96",
+            "approx_size": false,
+            "size_format": "l",
+            "total_units": null,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "tax_percentage": "4.000",
+            "price_decreased": false,
+            "reference_price": "0.960",
+            "min_bunch_amount": 1.0,
+            "reference_format": "L",
+            "previous_unit_price": null,
+            "increment_bunch_amount": 1.0
+          },
+          "unavailable_weekdays": [],
+          "is_new_arrival": false
+        },
+        {
+          "id": "10504",
+          "slug": "leche-entera-asturiana-pack-6",
+          "limit": 999,
+          "badges": {
+            "is_water": false,
+            "requires_age_check": false
+          },
+          "status": null,
+          "packaging": "Pack-6",
+          "published": true,
+          "share_url": "https://tienda.mercadona.es/product/10504/leche-entera-asturiana-pack-6",
+          "thumbnail": "https://prod-mercadona.imgix.net/images/724c49d63dee993987fb212c6b1f2bc9.jpg?fit=crop&h=300&w=300",
+          "categories": [
+            {
+              "id": 6,
+              "name": "Huevos, leche y mantequilla",
+              "level": 0,
+              "order": 373
+            }
+          ],
+          "display_name": "Leche entera Asturiana",
+          "main_feature": null,
+          "unavailable_from": null,
+          "price_instructions": {
+            "iva": null,
+            "is_new": false,
+            "is_pack": true,
+            "pack_size": 1.5,
+            "unit_name": "botellas",
+            "unit_size": 9.0,
+            "bulk_price": "1.26",
+            "unit_price": "11.34",
+            "approx_size": false,
+            "size_format": "l",
+            "total_units": 6,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "tax_percentage": "4.000",
+            "price_decreased": false,
+            "reference_price": "1.260",
+            "min_bunch_amount": 1.0,
+            "reference_format": "L",
+            "previous_unit_price": "       11.82",
+            "increment_bunch_amount": 1.0
+          },
+          "unavailable_weekdays": [],
+          "is_new_arrival": false
+        }
+      ]
+    }
+  ],
+  "next_category": {
+    "id": 75,
+    "name": "Mantequilla y margarina"
+  }
+}

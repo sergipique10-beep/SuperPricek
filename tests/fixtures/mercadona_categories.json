@@ -1,0 +1,24 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 6,
+      "name": "Huevos, leche y mantequilla",
+      "order": 373,
+      "is_extended": false,
+      "categories": [
+        {
+          "id": 72,
+          "name": "Leche y bebidas vegetales",
+          "order": 373,
+          "layout": 1,
+          "published": true,
+          "is_extended": false
+        }
+      ],
+      "icon_url": null
+    }
+  ]
+}
