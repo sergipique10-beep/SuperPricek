@@ -37,7 +37,13 @@ En la consola de Windows, usar `PYTHONIOENCODING=utf-8` para ver bien las tildes
   de nivel 2. Productos: `GET /api/categories/{id}/` → `categories[].products[]`.
 - Almacén desde código postal: `PUT /api/postal-codes/actions/change-pc/` con
   `{"new_postal_code": "08820"}`. El almacén llega en la **cabecera**
-  `x-customer-wh` (08820 → `bcn1`). Un código sin tienda online no da error.
+  `x-customer-wh` (08820 → `bcn1`). Hay almacenes con código numérico
+  (Granada `3968`, Bizkaia `4391`) que también devuelven catálogo con precios.
+  Fuera de zona → 404 `{"error_msg":"This zip code is outside of our working area"}`
+  (toda la provincia de Málaga, octubre 2026).
+- Capitales probadas: Barcelona `bcn1`, Madrid `mad3`, Valencia `vlc1`,
+  Sevilla `svq1`, Alicante y Murcia `alc1` (compartido), Granada `3968`,
+  Córdoba `3769`, Bizkaia `4391`, Zaragoza `4493`, Málaga sin servicio.
 - `price_instructions`:
   - `unit_price` = precio del envase; `reference_price` + `reference_format`
     = precio por kg / L / ud / 100 ml / 100 g / docena / lavado.
@@ -49,6 +55,16 @@ En la consola de Windows, usar `PYTHONIOENCODING=utf-8` para ver bien las tildes
     también viene ×99 en esos productos.
 - El listado **no trae marca ni EAN**: solo están en `/api/products/{id}/`
   (1 petición por producto, ~4300). Decisión pendiente.
+
+## Infraestructura
+
+- Supabase: proyecto `superpricek` (ref `gikayuegystreypnztsp`), región
+  eu-central-1 (Fráncfort), Postgres 17, plan gratuito (500 MB). Todavía sin tablas.
+- Hosting de la API: Render (plan gratuito; se duerme tras 15 min sin tráfico).
+- Diseño (2026-10-08): `docs/superpowers/specs/2026-10-08-supabase-multi-provincia-design.md`.
+  Provincias → zonas de precio (almacén) → histórico por periodos
+  (`price_periods`), solo Postgres (psycopg 3), Docker para tests.
+  Provincias iniciales: Madrid, Barcelona, Valencia, Sevilla, Alicante, Murcia.
 
 ## Pendiente conocido
 
