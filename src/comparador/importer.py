@@ -150,13 +150,18 @@ def run_import(conn: psycopg.Connection, provider: Provider,
             log.info("%s/%s: %d productos", provider.name, zone["code"], len(items))
             results.append(ZoneResult(zone["code"], len(items)))
         except Exception as exc:
-            conn.rollback()
             log.exception("Fallo importando %s/%s", provider.name, zone["code"])
-            conn.execute(
-                "update import_runs set status = 'error', error = %s, finished_at = now() "
-                "where id = %s",
-                (str(exc)[:1000], run_id),
-            )
-            conn.commit()
+            try:
+                conn.rollback()
+                conn.execute(
+                    "update import_runs set status = 'error', error = %s, finished_at = now() "
+                    "where id = %s",
+                    (str(exc)[:1000], run_id),
+                )
+                conn.commit()
+            except psycopg.Error:
+                # Conexión perdida: el fallo no queda registrado, pero no se
+                # oculta el error original ni se aborta el resto del comando.
+                log.error("No se pudo registrar el error de %s: conexión perdida", zone["code"])
             results.append(ZoneResult(zone["code"], 0, str(exc)))
     return results

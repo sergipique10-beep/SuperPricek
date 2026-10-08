@@ -7,6 +7,9 @@ on:
     - cron: "17 5 * * *"   # 05:17 UTC, a una hora de poco tráfico
   workflow_dispatch:
 
+# Nunca dos importaciones a la vez (p. ej. cron + lanzamiento manual)
+concurrency: import-diario
+
 jobs:
   mercadona:
     runs-on: ubuntu-latest

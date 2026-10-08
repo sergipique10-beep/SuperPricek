@@ -18,8 +18,10 @@ from .db import database_url
 
 def create_app(conninfo: str | None = None) -> FastAPI:
     # prepare_threshold=None: el pooler de Supabase (transaction) no admite
-    # sentencias preparadas
+    # sentencias preparadas. check: descarta conexiones que el pooler o la red
+    # hayan cerrado mientras estaban ociosas, en vez de devolver un 500.
     pool = ConnectionPool(conninfo or database_url(), min_size=1, max_size=5, open=False,
+                          check=ConnectionPool.check_connection,
                           kwargs={"row_factory": dict_row, "prepare_threshold": None})
 
     @asynccontextmanager

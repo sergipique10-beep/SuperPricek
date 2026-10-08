@@ -1,5 +1,5 @@
 import pytest
-from conftest import FakeProvider, make_item
+from conftest import FakeProvider, kill_connections, make_item
 
 from comparador import cli
 from comparador.cli import main
@@ -57,3 +57,23 @@ def test_argumentos_invalidos(argv):
     with pytest.raises(SystemExit) as exc:
         main(argv)
     assert exc.value.code == 2
+
+
+def test_una_conexion_cortada_no_tumba_las_demas_zonas(db, db_url, monkeypatch, capsys):
+    monkeypatch.setenv("DATABASE_URL", db_url)
+
+    class CortaConexion(FakeProvider):
+        def fetch_all(self, zone, limit_categories=None):
+            if zone == "bcn1":
+                kill_connections(db_url)  # se corta mientras se descarga bcn1
+            yield from super().fetch_all(zone, limit_categories)
+
+    prov = CortaConexion(zones={"08001": "bcn1", "28001": "mad3"}, catalogs={
+        "bcn1": [make_item("1", 0.83)], "mad3": [make_item("1", 0.89)]})
+    monkeypatch.setattr(cli, "get_provider", lambda name, **kwargs: prov)
+    main(["province", "add", "barcelona", "Barcelona", "--postal-code", "08001"])
+    main(["province", "add", "madrid", "Madrid", "--postal-code", "28001"])
+
+    assert main(["import", "mercadona"]) == 1
+    out = capsys.readouterr().out
+    assert "bcn1: ERROR" in out and "mad3: 1 productos" in out

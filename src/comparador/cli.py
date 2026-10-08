@@ -14,7 +14,7 @@ import argparse
 import logging
 
 from . import queries
-from .catalog import add_province
+from .catalog import active_zones, add_province
 from .db import connect
 from .importer import run_import
 from .providers import PROVIDERS, get_provider
@@ -111,7 +111,14 @@ def _import(args: argparse.Namespace) -> int:
         return 0
 
     with connect() as conn:
-        results = run_import(conn, provider, zone_code=args.zone)
+        zones = [args.zone] if args.zone else [
+            z["code"] for z in active_zones(conn, provider.name)]
+    results = []
+    for zone in zones:
+        # Una conexión por zona: la descarga tarda minutos y si la conexión
+        # se corta, solo falla esa zona.
+        with connect() as conn:
+            results += run_import(conn, provider, zone_code=zone)
     if not results:
         print("No hay zonas activas: añade una con `comparador province add`.")
         return 1

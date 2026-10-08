@@ -1,4 +1,5 @@
 import pytest
+from conftest import kill_connections
 from fastapi.testclient import TestClient
 
 from comparador.api import create_app
@@ -52,3 +53,9 @@ def test_detalle_e_historial(client):
 
 def test_supermercados(client):
     assert client.get("/api/v1/supermarkets").json()[0]["products"] == 6
+
+
+def test_api_sobrevive_a_conexiones_cortadas(client, db_url):
+    assert client.get("/api/v1/provinces").status_code == 200
+    kill_connections(db_url)  # p. ej. el pooler de Supabase cierra conexiones ociosas
+    assert client.get("/api/v1/provinces").status_code == 200

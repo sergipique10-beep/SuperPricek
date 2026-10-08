@@ -150,3 +150,11 @@ def seeded(db):
         i for i in prov.catalogs["bcn1"] if i.product.external_id not in ("1", "4")]
     run_import(db, prov, zone_code="bcn1", import_date=D2)
     return prov
+
+
+def kill_connections(url: str) -> None:
+    """Corta todas las demás conexiones a la base de datos de tests, como
+    haría un corte de red o el pooler de Supabase cerrando conexiones."""
+    with psycopg.connect(url, autocommit=True) as admin:
+        admin.execute("select pg_terminate_backend(pid) from pg_stat_activity "
+                      "where datname = current_database() and pid <> pg_backend_pid()")
